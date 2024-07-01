@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    padding-bottom: 90px;
+}
+
+.navbar {
+    background-color: #464D70;
+    overflow: hidden;
+    padding: 10px 20px;
+}
+
+.navbar-brand {
+    float: left;
+    color: white;
+    font-size: 20px;
+    padding-left: 300px;
+    margin: 0;
+}
+
+.navbar-menu {
+    float: right;
+    margin: 0;
+    padding-right: 300px;
+    list-style: none;
+}
+
+.navbar-menu li {
+    display: inline;
+    margin-left: 20px;
+}
+
+.navbar-menu li a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+}
+.figuracirculo {
+    border-radius: 50%; /* Esto hace que la imagen sea un círculo perfecto */
+    width: 200px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
+    height: 200px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
+}
+
+.apartados{
+    color: #A1AC88;
+}
+
+.sobre{
+    padding-top: 80px;
+}
+
+.text-sobre{
+    text-align: justify;
+}
+
+.text-projects{
+    text-align: justify;
+    margin-top: 20px;
+}
+
+/* Media query para hacerlo responsivo */
+@media screen and (max-width: 1300px) {
+    .navbar-brand, .navbar-menu {
+        float: none;
+        display: block;
+        text-align: center;
+        padding: 10px 0;
+        width: 100%;
+    }
+    .navbar-menu li {
+        display: block;
+        text-align: center;
+        margin: 0;
+        padding: 10px 0;
+    }
+    .navbar-menu li:first-child {
+        margin-top: 10px;
+    }
+}
