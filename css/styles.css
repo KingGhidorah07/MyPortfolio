@@ -3,13 +3,18 @@ body {
     font-family: Arial, sans-serif;
     padding-bottom: 90px;
 }
-
+.fondo{
+    background-color: #2C2C2C;
+    color: white;
+}
 .navbar {
-    background-color: #464D70;
+    background: linear-gradient(to right, #2C2C2C, #FFB633);
     overflow: hidden;
     padding: 10px 20px;
 }
-
+.alto{
+    height: 600px;
+}
 .navbar-brand {
     float: left;
     color: white;
@@ -37,8 +42,9 @@ body {
 }
 .figuracirculo {
     border-radius: 50%; /* Esto hace que la imagen sea un círculo perfecto */
-    width: 200px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
-    height: 200px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
+    width: 300px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
+    height: 300px; /* Asegúrate de que el tamaño sea el mismo en altura y anchura */
+    margin-top: -50px;
 }
 
 .apartados{
@@ -51,6 +57,7 @@ body {
 
 .text-sobre{
     text-align: justify;
+    font-size: 23px;
 }
 
 .text-projects{
