@@ -197,7 +197,6 @@ textarea::placeholder {
     padding: 10px 20px;
     transition: background-color 0.3s ease;
 }
-
 .navbar.scrolled {
     background-color: #1F232D;
 }
@@ -217,8 +216,13 @@ textarea::placeholder {
     font-size: 24px;
     color: white;
     cursor: pointer;
-}
+    margin-left: auto;
 
+}
+.menu-open{
+    background-color: #1F232D;
+    color: white;
+}
 .navbar-menu {
     float: right;
     margin: 0;
@@ -229,6 +233,9 @@ textarea::placeholder {
 .navbar-menu li {
     display: inline;
     margin-left: 20px;
+}
+.navbar-menu li a.active{
+    color: #02efff;
 }
 
 .navbar-menu li a {
