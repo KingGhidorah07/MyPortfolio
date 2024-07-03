@@ -116,8 +116,19 @@ html, body {
     color: white;
     height: 450px;
 }
-.miSvg circle {
-    fill: red; /* Cambia el color del círculo a rojo */
+.cardProjects{
+    color: white;
+    height: 250px;
+}
+.imgProjects{
+    border-radius: 20px;
+}
+
+.portfolio{
+    margin-top: 100px;
+}
+.contact{
+    margin-top: 100px;
 }
 
 .especialidad {
