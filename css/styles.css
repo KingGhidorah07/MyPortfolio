@@ -135,7 +135,23 @@ html, body {
     color: #02efff;
     margin-bottom: 30px;
 }
-
+input{
+    background-color: #313743 !important;
+    color: white !important;
+    height: 50px !important;
+}
+input::placeholder {
+    color: #bababe !important; /* Cambia 'red' por el color que desees */
+    opacity: 1; /* Para asegurar que el color se aplique completamente */
+}
+textarea{
+    background-color: #313743 !important;
+    color: white !important;
+}
+textarea::placeholder {
+    color: #bababe !important; /* Cambia 'red' por el color que desees */
+    opacity: 1; /* Para asegurar que el color se aplique completamente */
+}
 
 .figuracirculo {
     border-radius: 50%; /* Esto hace que la imagen sea un círculo perfecto */
