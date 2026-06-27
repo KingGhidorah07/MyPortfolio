@@ -81,9 +81,9 @@ document.addEventListener('DOMContentLoaded', function () {
   //    Variables a usar en el template: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
   // 4. Account → API Keys → copia tu Public Key
   // 5. Reemplaza los tres valores de abajo con los tuyos
-  const EMAILJS_SERVICE_ID  = 'TU_SERVICE_ID';
-  const EMAILJS_TEMPLATE_ID = 'TU_TEMPLATE_ID';
-  const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY';
+  const EMAILJS_SERVICE_ID  = 'service_c82w5i8';
+  const EMAILJS_TEMPLATE_ID = 'service_c82w5i8';
+  const EMAILJS_PUBLIC_KEY  = 'yTXv2cVvyWknxRj4d';
 
   if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 

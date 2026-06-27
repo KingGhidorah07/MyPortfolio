@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '16,523p' /home/kingghidorah07/Documentos/Projects/MyPortfolio/index.html > /home/kingghidorah07/Documentos/Projects/MyPortfolio/styles.css && echo \"CSS written: $\\(wc -l < /home/kingghidorah07/Documentos/Projects/MyPortfolio/styles.css\\) lines\")"
+    ],
+    "additionalDirectories": [
+      "/home/kingghidorah07/Documentos/Projects/MyPortfolio"
+    ]
+  }
+}
