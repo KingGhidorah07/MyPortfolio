@@ -73,8 +73,63 @@ document.addEventListener('DOMContentLoaded', function () {
   const filterBtns=document.querySelectorAll('.filter-btn'),projectCards=document.querySelectorAll('.project-card');
   filterBtns.forEach(btn=>{btn.addEventListener('click',function(){filterBtns.forEach(b=>b.classList.remove('active'));this.classList.add('active');const filter=this.getAttribute('data-filter');projectCards.forEach((card,index)=>{const categories=card.getAttribute('data-category')||'',matches=filter==='all'||categories.includes(filter);if(matches){card.classList.remove('hidden');card.style.animationDelay=`${index*0.05}s`;}else card.classList.add('hidden');});});});
 
-  // Contact form
-  const form=document.getElementById('contact-form');
-  if(form){form.addEventListener('submit',function(e){e.preventDefault();const btn=form.querySelector('.form-submit-btn'),originalText=btn.innerHTML;btn.innerHTML='<span>Enviando...</span>';btn.disabled=true;setTimeout(function(){showFormSuccess();btn.innerHTML=originalText;btn.disabled=false;form.reset();},1500);});}
-  function showFormSuccess(){const wrap=document.querySelector('.contact-form-wrap'),success=document.createElement('div');success.className='form-success-msg';success.innerHTML=`<div style="font-size:3rem;margin-bottom:1rem;">✓</div><h3 style="margin-bottom:0.5rem;">¡Mensaje enviado!</h3><p>Gracias por escribirme. Te responderé a la brevedad.</p>`;success.style.cssText='text-align:center;padding:2rem;';const formEl=wrap.querySelector('.contact-form');formEl.style.display='none';wrap.appendChild(success);setTimeout(function(){wrap.removeChild(success);formEl.style.display='';},4000);}
+  // Contact form — EmailJS
+  // Pasos para activar: https://www.emailjs.com/
+  // 1. Crea cuenta gratis en emailjs.com (200 emails/mes gratis)
+  // 2. Add New Service → elige Gmail u otro → copia el Service ID
+  // 3. Email Templates → Create New Template → copia el Template ID
+  //    Variables a usar en el template: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
+  // 4. Account → API Keys → copia tu Public Key
+  // 5. Reemplaza los tres valores de abajo con los tuyos
+  const EMAILJS_SERVICE_ID  = 'TU_SERVICE_ID';
+  const EMAILJS_TEMPLATE_ID = 'TU_TEMPLATE_ID';
+  const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY';
+
+  if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
+
+  const form = document.getElementById('contact-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = form.querySelector('.form-submit-btn');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<span>Enviando...</span>';
+      btn.disabled = true;
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        from_name:  document.getElementById('name').value,
+        from_email: document.getElementById('email').value,
+        subject:    document.getElementById('subject').value,
+        message:    document.getElementById('message').value,
+      })
+      .then(function() {
+        showFormSuccess();
+        form.reset();
+      })
+      .catch(function() {
+        const wrap = document.querySelector('.contact-form-wrap');
+        const errMsg = document.createElement('p');
+        errMsg.textContent = 'Error al enviar. Por favor escríbeme directamente a través de LinkedIn o GitHub.';
+        errMsg.style.cssText = 'color:#e11d48;text-align:center;margin-top:1rem;font-size:0.875rem;';
+        wrap.appendChild(errMsg);
+        setTimeout(() => errMsg.remove(), 6000);
+      })
+      .finally(function() {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      });
+    });
+  }
+
+  function showFormSuccess() {
+    const wrap = document.querySelector('.contact-form-wrap');
+    const formEl = wrap.querySelector('.contact-form');
+    const success = document.createElement('div');
+    success.className = 'form-success-msg';
+    success.innerHTML = `<div style="font-size:3rem;margin-bottom:1rem;">✓</div><h3 style="margin-bottom:0.5rem;">¡Mensaje enviado!</h3><p>Gracias por escribirme. Te responderé a la brevedad.</p>`;
+    success.style.cssText = 'text-align:center;padding:2rem;';
+    formEl.style.display = 'none';
+    wrap.appendChild(success);
+    setTimeout(function() { wrap.removeChild(success); formEl.style.display = ''; }, 4000);
+  }
 });
