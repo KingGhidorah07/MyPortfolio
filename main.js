@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // 4. Account → API Keys → copia tu Public Key
   // 5. Reemplaza los tres valores de abajo con los tuyos
   const EMAILJS_SERVICE_ID  = 'service_c82w5i8';
-  const EMAILJS_TEMPLATE_ID = 'service_c82w5i8';
+  const EMAILJS_TEMPLATE_ID = 'template_plfvazf';
   const EMAILJS_PUBLIC_KEY  = 'yTXv2cVvyWknxRj4d';
 
   if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
