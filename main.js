@@ -1,135 +1,348 @@
-document.addEventListener('DOMContentLoaded', function () {
-  // NAVBAR
-  const navbar=document.getElementById('navbar'),hamburger=document.getElementById('hamburger'),mobileMenu=document.getElementById('mobile-menu'),navLinks=document.querySelectorAll('.navbar-links a, .mobile-menu a[data-section]'),sections=document.querySelectorAll('section[id]');
-  function onScroll(){const scrolled=window.scrollY>50;navbar.classList.toggle('scrolled',scrolled);const backBtn=document.getElementById('back-to-top');if(backBtn)backBtn.classList.toggle('visible',window.scrollY>400);highlightActiveLink();}
-  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
-  function highlightActiveLink(){let current='';sections.forEach(s=>{const top=s.offsetTop-100,bottom=top+s.offsetHeight;if(window.scrollY>=top&&window.scrollY<bottom)current=s.getAttribute('id');});navLinks.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+current||l.getAttribute('data-section')===current)l.classList.add('active');});}
-  if(hamburger&&mobileMenu){hamburger.addEventListener('click',function(){const isOpen=hamburger.classList.toggle('open');mobileMenu.classList.toggle('open',isOpen);document.body.style.overflow=isOpen?'hidden':'';});mobileMenu.querySelectorAll('a').forEach(l=>l.addEventListener('click',closeMobileMenu));document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu();});}
-  function closeMobileMenu(){hamburger.classList.remove('open');mobileMenu.classList.remove('open');document.body.style.overflow='';}
-  document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const targetId=this.getAttribute('href').slice(1),target=document.getElementById(targetId);if(target){e.preventDefault();const offset=navbar.offsetHeight+16,top=target.getBoundingClientRect().top+window.scrollY-offset;window.scrollTo({top,behavior:'smooth'});}});});
-  const backBtn=document.getElementById('back-to-top');if(backBtn)backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+(function () {
+  "use strict";
 
-  // OBSERVERS
-  function makeObserver(threshold=0.15,rootMargin='0px 0px -60px 0px'){return new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add('visible');else entry.target.classList.remove('visible');});},{threshold,rootMargin});}
-  const obsDefault=makeObserver(0.12),obsSlow=makeObserver(0.08,'0px 0px -30px 0px'),obsStrict=makeObserver(0.30);
-  function animateChildren(parent,selector,animClass,delayStep,observer,offset=0){const els=selector?Array.from(parent.querySelectorAll(selector)):Array.from(parent.children);els.forEach((el,i)=>{el.classList.add(animClass);el.style.transitionDelay=`${(i+offset)*delayStep}s`;observer.observe(el);});}
+  /* ── Helpers ─────────────────────────────────────────────── */
+  const $ = (sel, scope) => (scope || document).querySelector(sel);
+  const $$ = (sel, scope) => Array.from((scope || document).querySelectorAll(sel));
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fineHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  function safe(fn, name) { try { fn(); } catch (e) { console.warn("[" + name + "]", e); } }
 
-  // Ripple
-  document.querySelectorAll('.btn').forEach(btn=>{btn.addEventListener('click',function(e){const r=document.createElement('span'),rect=btn.getBoundingClientRect(),size=Math.max(rect.width,rect.height);r.className='ripple';r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());});});
+  /* ── Init sequence ───────────────────────────────────────── */
+  function boot() {
+    safe(initNav,          "nav");
+    safe(initMobileMenu,   "mobileMenu");
+    safe(initCursor,       "cursor");
+    safe(initMouseGradient,"gradient");
+    safe(initReveals,      "reveals");
+    safe(initCounters,     "counters");
+    safe(initTypewriter,   "typewriter");
+    safe(initProjectRows,  "projects");
+    safe(initSmoothAnchors,"anchors");
+    safe(initBackToTop,    "btt");
+    safe(initContactForm,  "form");
+    safe(initActiveNav,    "activeNav");
+    safe(revealSafety,     "safetyNet");
+    document.documentElement.classList.add("is-ready");
+  }
 
-  document.querySelectorAll('.fade-up,.fade-left,.fade-right,.section-divider').forEach(el=>obsDefault.observe(el));
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 
-  document.querySelectorAll('.section-label').forEach(label=>{new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){label.classList.remove('glowing');void label.offsetWidth;label.classList.add('glowing');}else label.classList.remove('glowing');});},{threshold:0.8}).observe(label);});
+  /* ── NAV scroll effect ───────────────────────────────────── */
+  function initNav() {
+    const nav = $("#navbar");
+    if (!nav) return;
+    const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
 
-  // Hero parallax
-  const hero=document.getElementById('hero');
-  if(hero){const orbs=hero.querySelectorAll('.hero-orb'),STRENGTH=[18,12,22];hero.addEventListener('mousemove',e=>{const rect=hero.getBoundingClientRect(),cx=(e.clientX-rect.left)/rect.width-0.5,cy=(e.clientY-rect.top)/rect.height-0.5;orbs.forEach((orb,i)=>{const s=STRENGTH[i]||15;orb.style.transform=`translate(${cx*s}px,${cy*s}px)`;});});hero.addEventListener('mouseleave',()=>orbs.forEach(orb=>{orb.style.transform='';}));}
+  /* ── Mobile menu ─────────────────────────────────────────── */
+  function initMobileMenu() {
+    const btn   = $("#hamburger");
+    const menu  = $("#mobile-menu");
+    const close = $("#mobile-close");
+    if (!btn || !menu) return;
 
-  // About
-  const aboutSection=document.getElementById('about');
-  if(aboutSection){const rolesGrid=aboutSection.querySelector('.about-roles-grid');if(rolesGrid)animateChildren(rolesGrid,null,'anim-zoom',0.10,obsDefault);aboutSection.querySelectorAll('.stat-item').forEach((el,i)=>{el.classList.add('anim-pop');el.style.transitionDelay=`${i*0.12}s`;obsStrict.observe(el);});aboutSection.querySelectorAll('.info-item').forEach((el,i)=>{el.classList.add('anim-slide-left');el.style.transitionDelay=`${i*0.09}s`;obsDefault.observe(el);});const hackBadge=aboutSection.querySelector('.hackathon-badge');if(hackBadge){hackBadge.classList.add('anim-zoom');hackBadge.style.transitionDelay='0.5s';obsDefault.observe(hackBadge);}}
+    function open() {
+      btn.classList.add("open");
+      menu.classList.add("open");
+      document.body.style.overflow = "hidden";
+      btn.setAttribute("aria-expanded", "true");
+    }
+    function shut() {
+      btn.classList.remove("open");
+      menu.classList.remove("open");
+      document.body.style.overflow = "";
+      btn.setAttribute("aria-expanded", "false");
+    }
 
-  // Experience
-  const expSection=document.getElementById('experience');
-  if(expSection){const timeline=expSection.querySelector('.timeline');if(timeline){new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting)timeline.classList.add('line-visible');else timeline.classList.remove('line-visible');});},{threshold:0.05}).observe(timeline);}expSection.querySelectorAll('.timeline-item').forEach((item,i)=>{const card=item.querySelector('.timeline-card'),dot=item.querySelector('.timeline-dot');if(card){const isRight=item.classList.contains('right');card.classList.add(isRight?'anim-slide-right':'anim-slide-left');card.style.transitionDelay=`${i*0.15+0.2}s`;obsSlow.observe(card);}if(dot){new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting)setTimeout(()=>dot.classList.add('dot-visible'),i*150+100);else dot.classList.remove('dot-visible');});},{threshold:0.8}).observe(dot);}});}
+    btn.addEventListener("click", () => menu.classList.contains("open") ? shut() : open());
+    if (close) close.addEventListener("click", shut);
+    $$("a", menu).forEach(a => a.addEventListener("click", shut));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") shut(); });
+  }
 
-  // Skills
-  const skillsSection=document.getElementById('skills');
-  if(skillsSection){skillsSection.querySelectorAll('.skill-category').forEach((cat,i)=>{cat.classList.add('anim-zoom');cat.style.transitionDelay=`${i*0.10}s`;obsDefault.observe(cat);});skillsSection.querySelectorAll('.skill-tag').forEach((tag,i)=>{tag.classList.add('anim-pop');tag.style.transitionDelay=`${i*0.06+0.3}s`;obsDefault.observe(tag);});skillsSection.querySelectorAll('.language-item').forEach((el,i)=>{el.classList.add('anim-slide-left');el.style.transitionDelay=`${i*0.15}s`;obsDefault.observe(el);});}
+  /* ── Custom cursor — hidden until first mousemove (A.3) ─── */
+  function initCursor() {
+    if (!fineHover) return;
+    const cursor = $(".cursor");
+    const dot    = $(".cursor-dot");
+    const ring   = $(".cursor-ring");
+    if (!cursor || !dot || !ring) return;
 
-  // Projects
-  const projSection=document.getElementById('projects');
-  if(projSection){projSection.querySelectorAll('.filter-btn').forEach((btn,i)=>{btn.classList.add('anim-fade-down');btn.style.transitionDelay=`${i*0.07}s`;obsDefault.observe(btn);});projSection.querySelectorAll('.project-card').forEach((card,i)=>{card.classList.add('anim-zoom');card.style.transitionDelay=`${i*0.09}s`;obsDefault.observe(card);});}
+    let rx = 0, ry = 0, dx = 0, dy = 0;
+    let firstMove = false;
+    let rafId;
 
-  // Education
-  const eduSection=document.getElementById('education');
-  if(eduSection){eduSection.querySelectorAll('.edu-card').forEach((card,i)=>{card.classList.add(i%2===0?'anim-slide-left':'anim-slide-right');card.style.transitionDelay=`${i*0.13}s`;obsDefault.observe(card);});eduSection.querySelectorAll('.hackathon-card').forEach((card,i)=>{card.classList.add('anim-flip');card.style.transitionDelay=`${i*0.15}s`;obsDefault.observe(card);});}
+    function lerp(a, b, t) { return a + (b - a) * t; }
 
-  // Exposoftware
-  const expoSection=document.getElementById('exposoftware');
-  if(expoSection){expoSection.querySelectorAll('.expo-pillar').forEach((p,i)=>{p.classList.add('anim-fade-up');p.style.transitionDelay=`${i*0.12+0.2}s`;obsDefault.observe(p);});expoSection.querySelectorAll('.expo-stat').forEach((s,i)=>{s.classList.add('anim-pop');s.style.transitionDelay=`${i*0.12+0.4}s`;obsDefault.observe(s);});expoSection.querySelectorAll('.expo-chip').forEach((c,i)=>{c.classList.add('anim-pop');c.style.transitionDelay=`${i*0.10+0.6}s`;obsDefault.observe(c);});const expoCard=expoSection.querySelector('.expo-card');if(expoCard){expoCard.style.opacity='0';new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){expoCard.classList.remove('card-animated');void expoCard.offsetWidth;expoCard.style.opacity='0';setTimeout(()=>expoCard.classList.add('card-animated'),200);}else{expoCard.classList.remove('card-animated');expoCard.style.opacity='0';}});},{threshold:0.25}).observe(expoCard);}}
+    function animate() {
+      rx = lerp(rx, dx, 0.12);
+      ry = lerp(ry, dy, 0.12);
+      ring.style.transform = "translate3d(" + rx + "px," + ry + "px,0)";
+      rafId = requestAnimationFrame(animate);
+    }
 
-  // Contact
-  const contactSection=document.getElementById('contact');
-  if(contactSection){contactSection.querySelectorAll('.contact-method').forEach((el,i)=>{el.classList.add('anim-slide-left');el.style.transitionDelay=`${i*0.12}s`;obsDefault.observe(el);});contactSection.querySelectorAll('.contact-social-link').forEach((el,i)=>{el.classList.add('anim-pop');el.style.transitionDelay=`${i*0.10+0.3}s`;obsDefault.observe(el);});const formWrap=contactSection.querySelector('.contact-form-wrap');if(formWrap){formWrap.classList.add('anim-slide-right');obsDefault.observe(formWrap);}contactSection.querySelectorAll('.form-group').forEach((g,i)=>{g.classList.add('anim-fade-up');g.style.transitionDelay=`${i*0.08+0.3}s`;obsDefault.observe(g);});}
+    window.addEventListener("mousemove", e => {
+      dx = e.clientX; dy = e.clientY;
+      dot.style.transform = "translate3d(" + dx + "px," + dy + "px,0) translate(-50%,-50%)";
+      if (!firstMove) {
+        firstMove = true;
+        rx = dx; ry = dy;
+        cursor.classList.add("is-ready");
+        cancelAnimationFrame(rafId);
+        animate();
+      }
+    });
 
-  // Footer
-  const footer=document.getElementById('footer');
-  if(footer){footer.querySelectorAll('.footer-brand,.footer-col').forEach((col,i)=>{col.classList.add('anim-fade-up');col.style.transitionDelay=`${i*0.12}s`;obsDefault.observe(col);});const fb=footer.querySelector('.footer-bottom');if(fb){fb.classList.add('anim-fade-up');fb.style.transitionDelay='0.4s';obsDefault.observe(fb);}}
+    $$("a, button, [data-hover]").forEach(el => {
+      el.addEventListener("mouseover", () => cursor.classList.add("is-hover"));
+      el.addEventListener("mouseout",  () => cursor.classList.remove("is-hover"));
+    });
+  }
 
-  // Counters
-  document.querySelectorAll('[data-count]').forEach(el=>{const suffix=el.getAttribute('data-suffix')||'',prefix=el.getAttribute('data-prefix')||'';new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){el.classList.remove('counter-done');animateCounter(el);}else{el.textContent=prefix+'0'+suffix;el.classList.remove('counter-done');}});},{threshold:0.5}).observe(el);});
-  function animateCounter(el){const target=parseFloat(el.getAttribute('data-count')),suffix=el.getAttribute('data-suffix')||'',prefix=el.getAttribute('data-prefix')||'',duration=1800,start=performance.now(),isFloat=target%1!==0;function update(now){const elapsed=now-start,progress=Math.min(elapsed/duration,1),eased=1-Math.pow(1-progress,3),current=target*eased;el.textContent=prefix+(isFloat?current.toFixed(1):Math.floor(current))+suffix;if(progress<1)requestAnimationFrame(update);else el.classList.add('counter-done');}requestAnimationFrame(update);}
+  /* ── Hero mouse-reactive gradient — Archetype 05 signature ─ */
+  function initMouseGradient() {
+    const hero = $("#hero");
+    if (!hero || !fineHover) return;
 
-  // Typewriter
-  const typewriterEl=document.getElementById('typewriter-text');
-  if(typewriterEl){const texts=['Desarrollador Full Stack','Mtro. en Ingeniería de Software','Lic. en Tecnologías de la Información','5× Ganador Exposoftware','Experto en Linux y SQL'];let textIndex=0,charIndex=0,isDeleting=false;const TYPING_SPEED=65,DELETING_SPEED=35,PAUSE_AFTER=2200;function type(){const current=texts[textIndex];if(!isDeleting){typewriterEl.textContent=current.substring(0,charIndex+1);charIndex++;if(charIndex===current.length){isDeleting=true;setTimeout(type,PAUSE_AFTER);return;}setTimeout(type,TYPING_SPEED);}else{typewriterEl.textContent=current.substring(0,charIndex-1);charIndex--;if(charIndex===0){isDeleting=false;textIndex=(textIndex+1)%texts.length;}setTimeout(type,DELETING_SPEED);}}setTimeout(type,1200);}
+    hero.addEventListener("mousemove", e => {
+      const rect = hero.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1) + "%";
+      const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + "%";
+      hero.style.setProperty("--mx", x);
+      hero.style.setProperty("--my", y);
+    });
 
-  // Particles
-  function spawnParticle(section){const p=document.createElement('div'),size=Math.random()*6+3,left=Math.random()*90+5,dur=Math.random()*4+5,del=Math.random()*2,colors=['rgba(1,75,160,0.45)','rgba(127,0,178,0.45)','rgba(255,255,0,0.40)'];p.className='section-particle';p.style.cssText=`width:${size}px;height:${size}px;left:${left}%;bottom:0;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${del}s;animation-duration:${dur}s;`;section.appendChild(p);p.addEventListener('animationend',()=>p.remove());}
-  ['#about','#skills','#exposoftware'].forEach(sel=>{const section=document.querySelector(sel);if(!section)return;let intervalId=null;new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){let count=0;intervalId=setInterval(()=>{spawnParticle(section);if(++count>=10)clearInterval(intervalId);},280);}else{if(intervalId){clearInterval(intervalId);intervalId=null;}}});},{threshold:0.2}).observe(section);});
+    hero.addEventListener("mouseleave", () => {
+      hero.style.removeProperty("--mx");
+      hero.style.removeProperty("--my");
+    });
+  }
 
-  // Projects filter
-  const filterBtns=document.querySelectorAll('.filter-btn'),projectCards=document.querySelectorAll('.project-card');
-  filterBtns.forEach(btn=>{btn.addEventListener('click',function(){filterBtns.forEach(b=>b.classList.remove('active'));this.classList.add('active');const filter=this.getAttribute('data-filter');projectCards.forEach((card,index)=>{const categories=card.getAttribute('data-category')||'',matches=filter==='all'||categories.includes(filter);if(matches){card.classList.remove('hidden');card.style.animationDelay=`${index*0.05}s`;}else card.classList.add('hidden');});});});
+  /* ── Reveal on scroll — IntersectionObserver ─────────────── */
+  function initReveals() {
+    const els = $$(".reveal");
+    if (!els.length) return;
 
-  // Contact form — EmailJS
-  // Pasos para activar: https://www.emailjs.com/
-  // 1. Crea cuenta gratis en emailjs.com (200 emails/mes gratis)
-  // 2. Add New Service → elige Gmail u otro → copia el Service ID
-  // 3. Email Templates → Create New Template → copia el Template ID
-  //    Variables a usar en el template: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
-  // 4. Account → API Keys → copia tu Public Key
-  // 5. Reemplaza los tres valores de abajo con los tuyos
-  const EMAILJS_SERVICE_ID  = 'service_c82w5i8';
-  const EMAILJS_TEMPLATE_ID = 'template_plfvazf';
-  const EMAILJS_PUBLIC_KEY  = 'yTXv2cVvyWknxRj4d';
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const delay = parseFloat(e.target.dataset.delay || "0") * 1000;
+          setTimeout(() => e.target.classList.add("is-visible"), delay);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.04, rootMargin: "0px 0px -3% 0px" });
 
-  if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
+    els.forEach(el => io.observe(el));
+  }
 
-  const form = document.getElementById('contact-form');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const btn = form.querySelector('.form-submit-btn');
-      const originalHTML = btn.innerHTML;
-      btn.innerHTML = '<span>Enviando...</span>';
-      btn.disabled = true;
+  /* Safety net at 6s — reveal anything still hidden (A.8) */
+  function revealSafety() {
+    setTimeout(() => {
+      $$(".reveal:not(.is-visible)").forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight * 1.2) {
+          el.classList.add("is-visible");
+        }
+      });
+    }, 6000);
+  }
 
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        from_name:  document.getElementById('name').value,
-        from_email: document.getElementById('email').value,
-        subject:    document.getElementById('subject').value,
-        message:    document.getElementById('message').value,
-      })
-      .then(function() {
-        showFormSuccess();
-        form.reset();
-      })
-      .catch(function() {
-        const wrap = document.querySelector('.contact-form-wrap');
-        const errMsg = document.createElement('p');
-        errMsg.textContent = 'Error al enviar. Por favor escríbeme directamente a través de LinkedIn o GitHub.';
-        errMsg.style.cssText = 'color:#e11d48;text-align:center;margin-top:1rem;font-size:0.875rem;';
-        wrap.appendChild(errMsg);
-        setTimeout(() => errMsg.remove(), 6000);
-      })
-      .finally(function() {
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
+  /* ── Animated count-up ──────────────────────────────────── */
+  function initCounters() {
+    const nums = $$("[data-count]");
+    if (!nums.length) return;
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        countUp(e.target);
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.04, rootMargin: "0px 0px -10% 0px" });
+
+    nums.forEach(el => io.observe(el));
+
+    function countUp(el) {
+      const target   = parseFloat(el.dataset.count);
+      const suffix   = el.dataset.suffix || "";
+      const duration = reduced ? 0 : 1600;
+      const start    = performance.now();
+      const isFloat  = String(target).includes(".");
+
+      if (duration === 0) { el.textContent = target + suffix; return; }
+
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const cur = target * eased;
+        el.textContent = (isFloat ? cur.toFixed(1) : Math.floor(cur)) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+  }
+
+  /* ── Typewriter ─────────────────────────────────────────── */
+  function initTypewriter() {
+    const el = $("#tw-text");
+    if (!el) return;
+
+    const texts = [
+      "Desarrollador Full Stack",
+      "Mtro. en Ingeniería de Software",
+      "Lic. en Tecnologías de la Información",
+      "5× Ganador Exposoftware",
+      "Experto en Linux y SQL"
+    ];
+    let tIdx = 0, cIdx = 0, deleting = false;
+    const SPEED_TYPE = 65, SPEED_DEL = 35, PAUSE = 2200;
+
+    function tick() {
+      const cur = texts[tIdx];
+      if (!deleting) {
+        el.textContent = cur.substring(0, ++cIdx);
+        if (cIdx === cur.length) { deleting = true; return setTimeout(tick, PAUSE); }
+        return setTimeout(tick, SPEED_TYPE);
+      }
+      el.textContent = cur.substring(0, --cIdx);
+      if (cIdx === 0) { deleting = false; tIdx = (tIdx + 1) % texts.length; }
+      setTimeout(tick, SPEED_DEL);
+    }
+
+    setTimeout(tick, 1000);
+  }
+
+  /* ── Project rows accordion ─────────────────────────────── */
+  function initProjectRows() {
+    $$(".project-row").forEach(row => {
+      const header = $(".project-row-header", row);
+      const body   = $(".project-row-body",   row);
+      if (!header || !body) return;
+
+      header.addEventListener("click", () => {
+        const isOpen = row.classList.toggle("is-open");
+        header.setAttribute("aria-expanded", isOpen);
+        body.removeAttribute("hidden");
+        body.style.maxHeight = isOpen ? body.scrollHeight + "px" : "0";
+
+        /* Collapse others */
+        $$(".project-row").forEach(other => {
+          if (other === row) return;
+          const otherHeader = $(".project-row-header", other);
+          const otherBody   = $(".project-row-body",   other);
+          other.classList.remove("is-open");
+          if (otherHeader) otherHeader.setAttribute("aria-expanded", "false");
+          if (otherBody)   otherBody.style.maxHeight = "0";
+        });
       });
     });
   }
 
-  function showFormSuccess() {
-    const wrap = document.querySelector('.contact-form-wrap');
-    const formEl = wrap.querySelector('.contact-form');
-    const success = document.createElement('div');
-    success.className = 'form-success-msg';
-    success.innerHTML = `<div style="font-size:3rem;margin-bottom:1rem;">✓</div><h3 style="margin-bottom:0.5rem;">¡Mensaje enviado!</h3><p>Gracias por escribirme. Te responderé a la brevedad.</p>`;
-    success.style.cssText = 'text-align:center;padding:2rem;';
-    formEl.style.display = 'none';
-    wrap.appendChild(success);
-    setTimeout(function() { wrap.removeChild(success); formEl.style.display = ''; }, 4000);
+  /* ── Smooth anchor scroll ───────────────────────────────── */
+  function initSmoothAnchors() {
+    const nav = $("#navbar");
+    document.addEventListener("click", e => {
+      const a = e.target.closest("a[href^='#']");
+      if (!a) return;
+      const id = a.getAttribute("href");
+      if (!id || id === "#") return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      const offset = (nav ? nav.offsetHeight : 72) + 16;
+      window.scrollTo({
+        top: target.getBoundingClientRect().top + window.scrollY - offset,
+        behavior: reduced ? "auto" : "smooth"
+      });
+    });
   }
-});
+
+  /* ── Active nav link ────────────────────────────────────── */
+  function initActiveNav() {
+    const navLinks = $$(".nav-links a");
+    const sections = $$("section[id]");
+    if (!navLinks.length || !sections.length) return;
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          navLinks.forEach(link => {
+            link.classList.toggle("active", link.getAttribute("href") === "#" + id);
+          });
+        }
+      });
+    }, { threshold: 0.04, rootMargin: "-35% 0px -55% 0px" });
+
+    sections.forEach(s => io.observe(s));
+  }
+
+  /* ── Back to top ────────────────────────────────────────── */
+  function initBackToTop() {
+    const btn = $("#back-to-top");
+    if (!btn) return;
+    window.addEventListener("scroll", () => {
+      btn.classList.toggle("visible", window.scrollY > 500);
+    }, { passive: true });
+    btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }));
+  }
+
+  /* ── Contact form — EmailJS ─────────────────────────────── */
+  function initContactForm() {
+    const form    = $("#contact-form");
+    const btn     = $("#form-btn");
+    const success = $("#form-success");
+    const error   = $("#form-error");
+    if (!form) return;
+
+    /* EmailJS keys — update with your real values:
+       emailjs.init("YOUR_PUBLIC_KEY");
+       Change YOUR_SERVICE_ID and YOUR_TEMPLATE_ID below. */
+    if (window.emailjs && typeof emailjs.init === "function") {
+      try { emailjs.init("YOUR_PUBLIC_KEY"); } catch (_) {}
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+
+      const btnText    = btn.querySelector(".btn-text");
+      const btnSending = btn.querySelector(".btn-sending");
+      btn.disabled = true;
+      if (btnText)    btnText.style.display    = "none";
+      if (btnSending) btnSending.style.display = "";
+      if (success) success.style.display = "none";
+      if (error)   error.style.display   = "none";
+
+      if (window.emailjs && typeof emailjs.sendForm === "function") {
+        emailjs.sendForm("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", form)
+          .then(() => {
+            if (success) success.style.display = "";
+            form.reset();
+          })
+          .catch(() => {
+            if (error) error.style.display = "";
+          })
+          .finally(() => {
+            btn.disabled = false;
+            if (btnText)    btnText.style.display    = "";
+            if (btnSending) btnSending.style.display = "none";
+          });
+      } else {
+        /* EmailJS not configured — show fallback */
+        if (error) error.style.display = "";
+        btn.disabled = false;
+        if (btnText)    btnText.style.display    = "";
+        if (btnSending) btnSending.style.display = "none";
+      }
+    });
+  }
+
+})();
